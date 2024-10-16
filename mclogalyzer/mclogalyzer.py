@@ -279,9 +279,14 @@ def grep_logname_date(line):
 
 def grep_log_datetime(date, line):
     try:
-        d = time.strptime(line.split(" ")[0], "[%H:%M:%S]")
+        # line = 'b\'[23:12:26] [ServerMain/INFO]: Building unoptimized datafixer\''
+        date_1 = line.split(" ")[0]
+        date_2 = str(date_1)
+        date_3 = date_2[2:]
+        d = time.strptime(date_3, "[%H:%M:%S]")
+        # d = time.strptime(line.split(" ")[0], "[%H:%M:%S]")
     except ValueError:
-        print "### Warning: Unable to parse date in line=%s" % line
+        print("### Warning: Unable to parse date in line=%s" % line)
         return None
     return datetime.datetime(
         year=date.year, month=date.month, day=date.day,
@@ -292,10 +297,11 @@ def grep_log_datetime(date, line):
 def grep_login_username(line):
     search = REGEX_LOGIN_USERNAME.search(line)
     if not search:
-        print "### Warning: Unable to find login username:", line
+        print("### Warning: Unable to find login username:", line)
         return ""
     username = search.group(1).lstrip().rstrip()
-    return username.decode("ascii", "ignore").encode("ascii", "ignore")
+    return username
+    # return username.decode("ascii", "ignore").encode("ascii", "ignore")
 
 
 def grep_logout_username(line):
@@ -303,18 +309,20 @@ def grep_logout_username(line):
     if not search:
         search = REGEX_LOGOUT_USERNAME2.search(line)
         if not search:
-            print "### Warning: Unable to find username:", line
+            print("### Warning: Unable to find username:", line)
             return ""
     username = search.group(1).lstrip().rstrip()
-    return username.decode("ascii", "ignore").encode("ascii", "ignore")
+    return username
+    # return username.decode("ascii", "ignore").encode("ascii", "ignore")
 
 
 def grep_kick_username(line):
     search = REGEX_KICK_USERNAME.search(line)
     if not search:
-        print "### Warning: Unable to find kick logout username:", line
+        print("### Warning: Unable to find kick logout username:", line)
         return ""
-    return search.group(1)[:-1].decode("ascii", "ignore").encode("ascii", "ignore")
+    return search.group(1)[:-1]
+    # return search.group(1)[:-1].decode("ascii", "ignore").encode("ascii", "ignore")
 
 
 def grep_death(line):
@@ -325,15 +333,18 @@ def grep_death(line):
     return None, None
 
 def grep_chatlog(line):
-    search
+    # search
+    # TODO:
+    pass
 
 def grep_achievement(line):
     search = REGEX_ACHIEVEMENT.search(line)
     if not search:
-        print "### Warning: Unable to find achievement username or achievement:", line
+        print("### Warning: Unable to find achievement username or achievement:", line)
         return None, None
     username = search.group(1)
-    return username.decode("ascii", "ignore").encode("ascii", "ignore"), search.group(2)
+    return username, search.group(2)
+    # return username.decode("ascii", "ignore").encode("ascii", "ignore"), search.group(2)
 
 
 def format_delta(timedelta, days=True, maybe_years=False):
@@ -374,12 +385,13 @@ def parse_logs(logdir, since=None, whitelist_users=None):
         thisChatDay = ChatDay(today)
         if first_date is None:
             first_date = today
-        print "Parsing log %s (%s) ..." % (logname, today)
+        print("Parsing log %s (%s) ..." % (logname, today))
 
         logfile = gzip.open(os.path.join(logdir, logname))
 
         for line in logfile:
-            line = line.rstrip()
+            line = str(line.rstrip())
+            date = None
 
             if "logged in with entity id" in line:
                 date = grep_log_datetime(today, line)
@@ -446,7 +458,7 @@ def parse_logs(logdir, since=None, whitelist_users=None):
             else:
                 death_username, death_type = grep_death(line)
                 death_time = grep_log_datetime(today, line)
-                if date is None or (since is not None and date < since):
+                if date is None or (since is not None and date is not None and date < since):
                     continue
 
                 if death_username is not None:
@@ -482,7 +494,7 @@ def parse_logs(logdir, since=None, whitelist_users=None):
                 users[username] = UserStats(username)
 
     users = users.values()
-    users.sort(key=lambda user: user.time, reverse=True)
+    # users.sort(key=lambda user: user.time, reverse=True)
 
     server._statistics_since = since if since is not None else first_date
     for user in users:
@@ -534,7 +546,7 @@ def main():
         try:
             d = time.strptime(args["since"], "%Y-%m-%d %H:%M:%S")
         except ValueError:
-            print "Invalid datetime format! The format must be year-month-day hour:minute:second ."
+            print("Invalid datetime format! The format must be year-month-day hour:minute:second .")
             sys.exit(1)
         since = datetime.datetime(*(d[0:6]))
 
@@ -551,7 +563,7 @@ def main():
     #print template_path
     #print template_dir, template_name
     if not os.path.exists(template_path):
-        print "Unable to find template file %s!" % template_path
+        print("Unable to find template file %s!" % template_path)
         sys.exit(1)
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
