@@ -37,6 +37,7 @@ REGEX_LOGOUT_USERNAME2 = re.compile(
     "\[Server thread\/INFO\]:.*GameProfile.*name='?([^ ,']+)'?.* lost connection")
 REGEX_KICK_USERNAME = re.compile("\[INFO\] CONSOLE: Kicked player ([^ ]*)")
 REGEX_ACHIEVEMENT = re.compile("\[Server thread\/INFO\]: ([^ ]+) has just earned the achievement \[(.*)\]")
+REGEX_ADVANCEMENT = re.compile("\[Server thread\/INFO\]: ([^ ]+) has made the advancement \[(.*)\]")
 
 # regular expression to get the username of a chat message
 # you need to change this if you have special chat prefixes or stuff like that
@@ -338,10 +339,12 @@ def grep_chatlog(line):
     pass
 
 def grep_achievement(line):
-    search = REGEX_ACHIEVEMENT.search(line)
+    search = REGEX_ADVANCEMENT.search(line)
     if not search:
-        print("### Warning: Unable to find achievement username or achievement:", line)
-        return None, None
+        legacy_search = REGEX_ACHIEVEMENT.search(line)
+        if not legacy_search:
+            print("### Warning: Unable to find achievement username or achievement:", line)
+            return None, None
     username = search.group(1)
     return username, search.group(2)
     # return username.decode("ascii", "ignore").encode("ascii", "ignore"), search.group(2)
@@ -389,6 +392,9 @@ def parse_logs(logdir, since=None, whitelist_users=None):
 
         logfile = gzip.open(os.path.join(logdir, logname))
 
+        # invalid session sample: 2023-01-06-2.log
+
+
         for line in logfile:
             line = str(line.rstrip())
             date = None
@@ -425,6 +431,7 @@ def parse_logs(logdir, since=None, whitelist_users=None):
                 if date is None or (since is not None and date < since):
                     continue
 
+                # lost connection sample: 2023-03-13-18.log
                 username = ""
                 if "lost connection" in line:
                     username = grep_logout_username(line)
@@ -451,7 +458,7 @@ def parse_logs(logdir, since=None, whitelist_users=None):
                     user.handle_logout(date)
                 online_players = set()
 
-            elif "earned the achievement" in line:
+            elif "earned the achievement" in line or "has made the advancement" in line:
                 achievement_username, achievement = grep_achievement(line)
                 if achievement_username is not None:
                     if achievement_username in users:
@@ -478,7 +485,7 @@ def parse_logs(logdir, since=None, whitelist_users=None):
                     if date is None or (since is not None and date < since):
                         continue
 
-                    search = REGEX_CHAT_USERNAME.search(line)
+                    search = REGEX_CHAT_USERNAME.search(line)  # chat sample: 2023-01-03-7.log
                     if not search:
                         continue
                     username = search.group(2)
