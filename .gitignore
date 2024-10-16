@@ -7,3 +7,4 @@ tests/
 .idea/
 /mclogalyzer/Logs/
 /build/
+/mclogalyzer/Test_Logs/
