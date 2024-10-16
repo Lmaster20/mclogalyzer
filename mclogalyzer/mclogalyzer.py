@@ -467,9 +467,11 @@ def parse_logs(logdir, since=None, whitelist_users=None):
                         achievement_user._achievements.append(achievement)
 
             else:
+                # NPC death sample: 2023-03-22-2.log
+                # Player death sample: 2023-05-01-1.log
                 death_username, death_type = grep_death(line)
                 death_time = grep_log_datetime(today, line)
-                if date is None or (since is not None and date is not None and date < since):
+                if death_time is None or (since is not None and date is not None and date < since):
                     continue
 
                 if death_username is not None:
