@@ -393,7 +393,10 @@ def parse_logs(logdir, since=None, whitelist_users=None):
             line = str(line.rstrip())
             date = None
 
-            if "logged in with entity id" in line:
+            if "https://spark.lucko.me/" in line or "https://github.com/PaperMC/Paper/issues/8948" in line:
+                continue
+
+            elif "logged in with entity id" in line:
                 date = grep_log_datetime(today, line)
                 if date is None or (since is not None and date < since):
                     continue
@@ -455,6 +458,7 @@ def parse_logs(logdir, since=None, whitelist_users=None):
                         achievement_user = users[achievement_username]
                         achievement_user._achievement_count += 1
                         achievement_user._achievements.append(achievement)
+
             else:
                 death_username, death_type = grep_death(line)
                 death_time = grep_log_datetime(today, line)
@@ -493,12 +497,16 @@ def parse_logs(logdir, since=None, whitelist_users=None):
             if username not in users:
                 users[username] = UserStats(username)
 
-    users = users.values()
+    # users = users.values()
     # users.sort(key=lambda user: user.time, reverse=True)
+    sorted_users = sorted(users, key=lambda x:users[x].time, reverse=True)
+    final_users = {}
+    for u in sorted_users:
+        final_users[u] = users[u]
 
     server._statistics_since = since if since is not None else first_date
-    for user in users:
-        server._time_played += user._time
+    for user in final_users:
+        server._time_played += final_users[user]._time
 
     for i in range(len(chat)):
         if i%2:
@@ -506,7 +514,7 @@ def parse_logs(logdir, since=None, whitelist_users=None):
         else:
             chat[i]._even_day = False
 
-    return users, server, chat
+    return final_users.values(), server, chat
 
 
 def main():
