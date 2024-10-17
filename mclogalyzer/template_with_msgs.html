@@ -40,7 +40,9 @@
 			[".c-ragequits", "Rage quits", false],
 			[".c-achievements", "Achievements", false],
 			[".c-active-days", "Active days", false],
-			[".c-active-day-time", "Time per day", false]
+			[".c-active-day-time", "Time per day", false],
+			[".c-messages", "Messages sent", false],
+			[".c-message-time", "Time per message", false]
 		];
 
 		function addPlaces() {
@@ -166,6 +168,8 @@
 								<th class="col c-achievements">Achievements</th>
 								<th class="col c-active-days">Active days</th>
 								<th class="col c-active-day-time">Time per day</th>
+								<th class="col c-messages">Messages sent</th>
+								<th class="col c-message-time">Time per message</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -188,6 +192,8 @@
 								<td class="col c-achievements">{{ user.achievement_count }}</td>
 								<td class="col c-active-days">{{ user.active_days }}</td>
 								<td class="col c-active-day-time">{{ user.time_per_active_day }}</td>
+								<td class="col c-messages">{{ user.messages }}</td>
+								<td class="col c-message-time">{{ user.time_per_message }}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -268,6 +274,10 @@
 						<tr>
 							<th>Time per Day:</th>
 							<td>{{ user.time_per_active_day }}</td>
+						</tr>
+						<tr>
+							<th>Messages Sent:</th>
+							<td>{{ user.messages }}</td>
 						</tr>
 						<tr>
 							<th>Time per Message:</th>
