@@ -42,7 +42,13 @@ REGEX_ADVANCEMENT = re.compile("\[Server thread\/INFO\]: ([^ ]+) has made the ad
 # regular expression to get the username of a chat message
 # you need to change this if you have special chat prefixes or stuff like that
 # this regex works with chat messages of the format: <prefix username> chat message
-REGEX_CHAT_USERNAME = re.compile("\[Server thread\/INFO\]: <([^>]* )?([^ ]*)> (.+)")
+# REGEX_CHAT_USERNAME = re.compile("\[Server thread\/INFO\]: <([^>]* )?([^ ]*)> (.+)")
+# REGEX_CHAT_USERNAME = re.compile("\[Async Chat Thread - #17\/INFO\]: <([^>]* )?([^ ]*)> (.+)")
+# REGEX_CHAT_USERNAME = re.compile("\[([a-z0-9_\.-]+)Chat([a-z0-9_\.-]+)\/INFO\]: <([^>]* )?([^ ]*)> (.+)")
+# https://regex101.com/
+REGEX_CHAT_USERNAME = re.compile("\[[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?\] \[([A-Za-z0-9]+( [A-Za-z0-9]+)+) - #[0-9]+\/INFO\]: <([^>]* )?([^ ]*)> (.+)")
+# 'b\'[01:08:15] [Async Chat Thread - #17/INFO]: <LesserOf2Weevils> howdy\''
+# 'b\'[01:09:38] [Async Chat Thread - #34/INFO]: <Rexaura_xo> henlo\''
 
 DEATH_MESSAGES = (
     "was squashed by.*",
@@ -490,8 +496,8 @@ def parse_logs(logdir, since=None, whitelist_users=None):
                     search = REGEX_CHAT_USERNAME.search(line)  # chat sample: 2023-01-03-7.log
                     if not search:
                         continue
-                    username = search.group(2)
-                    chat_message = search.group(3)
+                    username = search.group(5)
+                    chat_message = search.group(6)
                     if username in users:
                         users[username]._messages += 1
                     thisChatDay._chat.append(ChatLog(date, username, chat_message))
